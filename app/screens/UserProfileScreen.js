@@ -4,6 +4,8 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { f, auth, database, storage } from '../../config/firebaseConfig';
 import { Icon } from 'react-native-eva-icons';
 
+import PhotoList from '../components/photoList';
+
 class UserProfile extends React.Component {
     constructor(props) {
         super(props);
@@ -66,7 +68,7 @@ class UserProfile extends React.Component {
                         <View style={{ flex: 1 }}>
                             <View style={styles.title}>
                                 <TouchableOpacity onPress={() => navigation.goBack()}>
-                                    <Icon name='chevron-left-outline' height={30} width={30} fill="#000000" />
+                                    <Icon name='chevron-up-outline' height={30} width={30} fill="#000000" />
                                 </TouchableOpacity>
                                 <View>
                                     <Text style={styles.titleText}>{this.state.username}</Text>
@@ -94,9 +96,7 @@ class UserProfile extends React.Component {
                                     </TouchableOpacity>
                                 </View>
                             </View>
-                            <View style={styles.photoContainer}>
-                                <Text>Loading photos ...</Text>
-                            </View>
+                            <PhotoList isUser={true} userId={this.state.userId} navigation={this.props.navigation} />
                         </View>
                     )}
             </View>
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         flexDirection: 'row',
         justifyContent: 'space-between',
-        paddingHorizontal: 5
+        paddingHorizontal: 10
     },
     titleText: {
         fontWeight: 'bold',

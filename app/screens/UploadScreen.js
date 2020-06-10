@@ -65,27 +65,87 @@ class Upload extends React.Component {
     }
 
     uploadPublish = () => {
-
+        if (this.state.uploading == false) {
+            if (this.state.caption != '') {
+                this.uploadImage(this.state.uri);
+            } else {
+                alert('Please enter a caption');
+            }
+        } else {
+            console.log('Ignore button tap as already uploading');
+        }
     }
 
     uploadImage = async (uri) => {
-        //
         var that = this;
         var userId = f.auth().currentUser.uid;
         var imageId = this.state.imageId;
 
         var re = /(?:\.([^.]+))?$/;
         var ext = re.exec(uri)[1];
-        this.setState({ currentFileType: ext });
+        this.setState({
+            currentFileType: ext,
+            uploading: true
+        });
 
         const response = await fetch(uri);
         const blob = await response.blob();
         var FilePath = imageId + '.' + that.state.currentFileType;
 
-        const ref = storage.ref('user/' + userId + '/img').child(FilePath);
+        var uploadTask = storage.ref('user/' + userId + '/img').child(FilePath).put(blob);
 
-        var snapshot = ref.put(blob).on('state_changed', snapshot => {
-            console.log('Progress', snapshot.bytesTransferred, snapshot.totalBytes);
+        uploadTask.on('state_changed', function (snapshot) {
+            var progress = ((snapshot.bytesTransferred / snapshot.totalBytes) * 100).toFixed(0);
+            console.log('Upload is ' + progress + '% complete');
+            that.setState({
+                progress: progress
+            });
+        }, function (error) {
+            console.log('Error with upload - ' + error);
+        }, function () {
+            // complete
+            that.setState({ progress: 100 });
+            uploadTask.snapshot.ref.getDownloadURL().then(function (downloadURL) {
+                console.log(downloadURL);
+                that.processUpload(downloadURL);
+            });
+        });
+    }
+
+    processUpload = (imageUrl) => {
+        // Process here ...
+
+        // Set needed info
+        var imageId = this.state.imageId;
+        var userId = f.auth().currentUser.uid;
+        var caption = this.state.caption;
+        var dateTime = Date.now();
+        var timestamp = Math.floor(dateTime / 1000);
+        // Build photo object
+        // author, caption, posted, url
+
+        var photoObj = {
+            author: userId,
+            caption: caption,
+            posted: timestamp,
+            url: imageUrl
+        }
+
+        // Update database
+
+        // Add to main feed
+        database.ref('/photos/' + imageId).set(photoObj);
+
+        // Set user photos object
+        database.ref('/users/' + userId + '/photos/' + imageId).set(photoObj);
+
+        alert('Image Uploaded!!');
+
+        this.setState({
+            uploading: false,
+            imageSelected: false,
+            caption: '',
+            uri: ''
         });
     }
 
@@ -138,7 +198,7 @@ class Upload extends React.Component {
                                     <Text style={{ marginTop: 10 }}>Your description:</Text>
                                     <TextInput
                                         editable={true}
-                                        placeholder={'Enter your caption ...'}
+                                        placeholder={'Enter your caption here ...'}
                                         maxLength={150}
                                         multiline={true}
                                         numberOfLines={4}
@@ -205,7 +265,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 5
+        paddingHorizontal: 10
     },
     titleText: {
         fontWeight: 'bold',

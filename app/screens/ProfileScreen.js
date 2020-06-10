@@ -1,7 +1,9 @@
 import React from 'react';
 import { TouchableOpacity, FlatList, StyleSheet, Text, View, Image } from 'react-native';
 import { f, auth, database, storage } from '../../config/firebaseConfig';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+
+import PhotoList from '../components/photoList';
 
 class Profile extends React.Component {
     constructor(props) {
@@ -11,13 +13,29 @@ class Profile extends React.Component {
         }
     }
 
+    fetchUserInfo = (userId) => {
+        var that = this;
+        database.ref('users').child(userId).once('value').then(function(snapshot){
+            const exists = (snapshot.val() !== null);
+            if (exists) data = snapshot.val();
+            that.setState({
+                username: data.username,
+                name: data.name,
+                avatar: data.avatar,
+                loggedin: true,
+                userId: userId
+            });
+        });
+    }
+
     componentDidMount = () => {
         var that = this;
         f.auth().onAuthStateChanged(function (user) {
             if (user) {
                 //Logged In
                 that.setState({
-                    loggedin: true
+                    loggedin: true,
+                    userId: user.uid
                 });
             } else {
                 //Not logged In
@@ -58,9 +76,7 @@ class Profile extends React.Component {
                                 </TouchableOpacity>
                             </View>
                         </View>
-                        <View style={styles.photoContainer}>
-                            <Text>Loading photos ...</Text>
-                        </View>
+                        <PhotoList isUser={true} userId={this.state.userId} navigation={this.props.navigation} />
                     </View>
                 ) : (
                         //Not logged in
@@ -124,12 +140,6 @@ const styles = StyleSheet.create({
     buttonText: {
         fontWeight: 'bold',
         fontSize: 13
-    },
-    photoContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#fff0f0'
     }
 });
 

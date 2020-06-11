@@ -33,10 +33,7 @@ class Profile extends React.Component {
         f.auth().onAuthStateChanged(function (user) {
             if (user) {
                 //Logged In
-                that.setState({
-                    loggedin: true,
-                    userId: user.uid
-                });
+                that.fetchUserInfo(user.uid);
             } else {
                 //Not logged In
                 that.setState({

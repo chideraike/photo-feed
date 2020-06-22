@@ -39,13 +39,17 @@ class Comment extends React.Component {
                 id: comment,
                 comment: commentObj.comment,
                 posted: that.timeConverter(commentObj.posted),
+                timestamp: commentObj.posted,
                 author: data,
                 authorId: commentObj.author
             });
 
+            var myData = [].concat(comments_list).sort((a, b) => a.timestamp < b.timestamp);
+
             that.setState({
                 refresh: false,
-                loading: false
+                loading: false,
+                comments_list: myData
             });
         }).catch(error => console.log(error));
     }

@@ -1,7 +1,9 @@
 import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, TextInput, KeyboardAvoidingView } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Image, TextInput, ActivityIndicator } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { f, auth, database, storage } from '../../config/firebaseConfig';
+import * as Permissions from 'expo-permissions';
+import * as ImagePicker from 'expo-image-picker';
 import { Icon } from 'react-native-eva-icons';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
@@ -14,34 +16,121 @@ class UserAuthScreen extends React.Component {
             username: '',
             email: '',
             pass: '',
-            moveScreen: false
+            avatarId: this.uniqueId(),
+            avatarSelected: false,
+            uploading: false,
+            progress: 0
         }
     }
 
-    login = async () => {
-        //Force user to login
-        var email = this.state.email;
-        var pass = this.state.pass;
+    _checkPermissions = async () => {
+        const { status } = await Permissions.askAsync(Permissions.CAMERA);
+        this.setState({ camera: status });
 
-        if (email != '' && pass != '') {
-            try {
-                let user = await auth.signInWithEmailAndPassword(email, pass); // 'test@user.com', 'password')
-            } catch (error) {
-                console.log(error);
-                alert(error);
-            }
+        const { statusRoll } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+        this.setState({ cameraRoll: statusRoll });
+    }
+
+    s4 = () => {
+        return Math.floor((1 + Math.random()) * 0x10000)
+            .toString(16)
+            .substring(1);
+    }
+    uniqueId = () => {
+        return this.s4() + this.s4() + '-' + this.s4() + '-' + this.s4() + '-' + this.s4() + '-' + this.s4() + '-' + this.s4() + '-' + this.s4();
+    }
+
+    findNewAvatar = async () => {
+        this._checkPermissions();
+
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: 'Images',
+            allowsEditing: true,
+            quality: 1
+        });
+
+        console.log(result);
+
+        if (!result.cancelled) {
+            console.log('upload image');
+            this.setState({
+                avatarSelected: true,
+                avatarId: this.uniqueId(),
+                uri: result.uri
+            });
+            // this.uploadImage(result.uri);
         } else {
-            alert('Email or password is empty');
+            console.log('cancel');
+            this.setState({
+                avatarSelected: false
+            });
+        }
+    }
+
+    uploadImage = async (uri) => {
+        var that = this;
+        var userId = f.auth().currentUser.uid;
+        var avatarId = this.state.avatarId;
+
+        var re = /(?:\.([^.]+))?$/;
+        var ext = re.exec(uri)[1];
+        this.setState({
+            currentFileType: ext,
+            uploading: true
+        });
+
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        var FilePath = avatarId + '.' + that.state.currentFileType;
+
+        var uploadTask = storage.ref('user/' + userId + '/avatar').child(FilePath).put(blob);
+
+        uploadTask.on('state_changed', function (snapshot) {
+            var progress = ((snapshot.bytesTransferred / snapshot.totalBytes) * 100).toFixed(0);
+            console.log('Upload is ' + progress + '% complete');
+            that.setState({
+                progress: progress
+            });
+        }, function (error) {
+            console.log('Error with upload - ' + error);
+        }, function () {
+            // complete
+            that.setState({ progress: 100 });
+            uploadTask.snapshot.ref.getDownloadURL().then(function (downloadURL) {
+                console.log(downloadURL);
+                that.processUpload(downloadURL);
+            });
+        });
+    }
+
+    processUpload = (imageUrl) => {
+        // Set needed info
+        var userId = f.auth().currentUser.uid;
+
+        // Set user photos object
+        database.ref('/users/' + userId + '/avatar/').set(imageUrl);
+
+        this.setState({
+            uploading: false,
+            avatarSelected: false,
+            uri: ''
+        });
+    }
+
+    uploadPublish = () => {
+        if (this.state.uploading == false) {
+            this.uploadImage(this.state.uri);
+        } else {
+            console.log('Ignore button tap as already uploading');
         }
     }
 
     createUserObj = (userObj, name, username, email) => {
-        console.log(userObj, email, userObj.uid);
+        console.log(userObj, name, username, email, userObj.uid);
 
         var uObj = {
             name: name,
             username: username,
-            avatar: 'http://www.gravatar.com/avatar',
             email: email
         }
         database.ref('users').child(userObj.uid).set(uObj);
@@ -59,13 +148,30 @@ class UserAuthScreen extends React.Component {
                 let user = await auth.createUserWithEmailAndPassword(email, pass)
                     .then((userObj) => this.createUserObj(userObj.user, name, username, email))
                     .catch((error) => alert(error));
-
+                this.uploadPublish();
             } catch (error) {
                 console.log(error);
                 alert(error);
             }
         } else {
             alert('Some fields are empty');
+        }
+    }
+
+    login = async () => {
+        //Force user to login
+        var email = this.state.email;
+        var pass = this.state.pass;
+
+        if (email != '' && pass != '') {
+            try {
+                let user = await auth.signInWithEmailAndPassword(email, pass); // 'test@user.com', 'password')
+            } catch (error) {
+                console.log(error);
+                alert(error);
+            }
+        } else {
+            alert('Email or password is empty');
         }
     }
 
@@ -126,7 +232,7 @@ class UserAuthScreen extends React.Component {
                                         />
                                     </View>
                                     <TouchableOpacity onPress={() => this.login()} style={styles.loginButton}>
-                                        <Text style={{ color: 'white' }}>Login</Text>
+                                        <Text style={{ color: 'white', fontWeight: 'bold' }}>Login</Text>
                                     </TouchableOpacity>
                                 </View>
                             ) : (
@@ -142,54 +248,87 @@ class UserAuthScreen extends React.Component {
                                             </TouchableOpacity>
                                         </View>
                                         <KeyboardAwareScrollView>
-                                            <View></View>
                                             <View>
-                                                <Text>Name:</Text>
-                                                <TextInput
-                                                    editable={true}
-                                                    keyboardType={'default'}
-                                                    placeholder={'Enter your name'}
-                                                    onChangeText={(text) => this.setState({ name: text })}
-                                                    value={this.state.name}
-                                                    style={styles.signupInput}
-                                                />
+                                                {this.state.avatarSelected == true ? (
+                                                    <View style={{ width: 300, flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', marginVertical: 10 }}>
+                                                        <View style={{ height: 75, width: 75, justifyContent: 'center', alignItems: 'center' }}>
+                                                            <Image source={{ uri: this.state.uri }} style={styles.uploadingImage} />
+                                                        </View>
+                                                        <Text>Profile picture selected</Text>
+                                                        <TouchableOpacity onPress={() => this.setState({ avatarSelected: false })}>
+                                                            <Icon name='close-outline' height={30} width={30} fill="#000000" />
+                                                        </TouchableOpacity>
+                                                    </View>
+                                                ) : (
+                                                        <View style={{ flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', marginVertical: 10 }}>
+                                                            <TouchableOpacity onPress={() => this.findNewAvatar()} style={{ height: 75, width: 75, backgroundColor: 'lightgrey', borderRadius: 75, justifyContent: 'center', alignItems: 'center' }}>
+                                                                <Icon name='person-outline' height={30} width={30} fill="#FFF" />
+                                                            </TouchableOpacity>
+                                                            <Text>Select a profile pic</Text>
+                                                        </View>
+                                                    )}
                                             </View>
-                                            <View>
-                                                <Text>Username:</Text>
-                                                <TextInput
-                                                    editable={true}
-                                                    keyboardType={'default'}
-                                                    placeholder={'Enter your username'}
-                                                    onChangeText={(text) => this.setState({ username: text })}
-                                                    value={this.state.username}
-                                                    style={styles.signupInput}
-                                                />
-                                            </View>
-                                            <View>
-                                                <Text>Email Address:</Text>
-                                                <TextInput
-                                                    editable={true}
-                                                    keyboardType={'email-address'}
-                                                    placeholder={'Enter your email address'}
-                                                    onChangeText={(text) => this.setState({ email: text })}
-                                                    value={this.state.email}
-                                                    style={styles.signupInput}
-                                                />
-                                            </View>
-                                            <View>
-                                                <Text>Password:</Text>
-                                                <TextInput
-                                                    editable={true}
-                                                    secureTextEntry={true}
-                                                    placeholder={'Enter your password'}
-                                                    onChangeText={(text) => this.setState({ pass: text })}
-                                                    value={this.state.pass}
-                                                    style={styles.signupInput}
-                                                />
+                                            <View style={{ alignSelf: 'center' }}>
+                                                <View>
+                                                    <Text>Name:</Text>
+                                                    <TextInput
+                                                        editable={true}
+                                                        keyboardType={'default'}
+                                                        placeholder={'Enter your name'}
+                                                        onChangeText={(text) => this.setState({ name: text })}
+                                                        value={this.state.name}
+                                                        style={styles.signupInput}
+                                                    />
+                                                </View>
+                                                <View>
+                                                    <Text>Username:</Text>
+                                                    <TextInput
+                                                        editable={true}
+                                                        keyboardType={'default'}
+                                                        placeholder={'Enter your username'}
+                                                        onChangeText={(text) => this.setState({ username: text })}
+                                                        value={this.state.username}
+                                                        style={styles.signupInput}
+                                                    />
+                                                </View>
+                                                <View>
+                                                    <Text>Email Address:</Text>
+                                                    <TextInput
+                                                        editable={true}
+                                                        keyboardType={'email-address'}
+                                                        placeholder={'Enter your email address'}
+                                                        onChangeText={(text) => this.setState({ email: text })}
+                                                        value={this.state.email}
+                                                        style={styles.signupInput}
+                                                    />
+                                                </View>
+                                                <View>
+                                                    <Text>Password:</Text>
+                                                    <TextInput
+                                                        editable={true}
+                                                        secureTextEntry={true}
+                                                        placeholder={'Enter your password'}
+                                                        onChangeText={(text) => this.setState({ pass: text })}
+                                                        value={this.state.pass}
+                                                        style={styles.signupInput}
+                                                    />
+                                                </View>
                                             </View>
                                             <TouchableOpacity onPress={() => this.signup()} style={styles.signupButton}>
-                                                <Text style={{ color: 'white' }}>Sign Up</Text>
+                                                <Text style={{ color: 'white', fontWeight: 'bold' }}>Sign Up</Text>
                                             </TouchableOpacity>
+                                            {this.state.uploading == true ? (
+                                                <View style={{ marginTop: 10, flexDirection: 'row', alignSelf: 'center' }}>
+                                                    <Text>{this.state.progress}%  </Text>
+                                                    {this.state.progress != 100 ? (
+                                                        <ActivityIndicator size='small' color='blue' />
+                                                    ) : (
+                                                            <Text>Processing</Text>
+                                                        )}
+                                                </View>
+                                            ) : (
+                                                    <View></View>
+                                                )}
                                         </KeyboardAwareScrollView>
                                     </View>
                                 )}
@@ -261,6 +400,12 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         borderRadius: 5,
         alignItems: 'center'
+    },
+    uploadingImage: {
+        resizeMode: 'cover',
+        width: '100%',
+        height: '100%',
+        borderRadius: 50
     }
 });
 

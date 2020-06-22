@@ -2,6 +2,7 @@
   "expo": {
     "name": "instagram-app-clone",
     "slug": "instagram-app-clone",
+    "description": "A clone of instagram for CSCD 322 end of semester exam",
     "platforms": [
       "ios",
       "android",

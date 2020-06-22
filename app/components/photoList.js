@@ -9,7 +9,8 @@ class PhotoListClass extends React.Component {
         this.state = {
             photo_feed: [],
             refresh: false,
-            loading: true
+            loading: true,
+            empty: false
         }
     }
 
@@ -71,13 +72,17 @@ class PhotoListClass extends React.Component {
                 url: photoObj.url,
                 caption: photoObj.caption,
                 posted: that.timeConverter(photoObj.posted),
+                timestamp: photoObj.posted,
                 author: data,
                 authorId: photoObj.author
             });
 
+            var myData = [].concat(photo_feed).sort((a, b) => a.timestamp < b.timestamp);
+
             that.setState({
                 refresh: false,
-                loading: false
+                loading: false,
+                photo_feed: myData
             });
         }).catch(error => console.log(error));
     }
@@ -97,10 +102,15 @@ class PhotoListClass extends React.Component {
 
         loadRef.orderByChild('posted').once('value').then(function (snapshot) {
             const exists = (snapshot.val() !== null);
-            if (exists) data = snapshot.val();
-            var photo_feed = that.state.photo_feed;
-            for (var photo in data) {
-                that.addToFlatList(photo_feed, data, photo);
+            if (exists) {
+                data = snapshot.val();
+                var photo_feed = that.state.photo_feed;
+                that.setState({ empty: false });
+                for (var photo in data) {
+                    that.addToFlatList(photo_feed, data, photo);
+                }
+            } else {
+                that.setState({ empty: true });
             }
         }).catch(error => console.log(error));
     }
@@ -116,7 +126,14 @@ class PhotoListClass extends React.Component {
             <View style={styles.container}>
                 {this.state.loading === true ? (
                     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                        <Text>Loading ...</Text>
+                        {this.state.empty == true ? (
+                            <View>
+                                <Text>No photos here 😴</Text>
+                                <Text>Start uploading 🤩</Text>
+                            </View>
+                        ) : (
+                                <Text>Loading ...</Text>
+                            )}
                     </View>
                 ) : (
                         <FlatList

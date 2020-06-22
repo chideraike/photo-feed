@@ -4,6 +4,8 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { f, auth, database, storage } from '../../config/firebaseConfig';
 import { Icon } from 'react-native-eva-icons';
 
+import UserAuth from '../components/auth';
+
 class Comment extends React.Component {
     constructor(props) {
         super(props);
@@ -81,9 +83,9 @@ class Comment extends React.Component {
 
     pluralCheck = (s) => {
         if (s == 1) {
-            return ' ago';
+            return '';
         } else {
-            return 's ago';
+            return 's';
         }
     }
 
@@ -131,6 +133,7 @@ class Comment extends React.Component {
         });
 
         this.checkParams();
+        this.state.comment = '';
     }
 
     postComment = () => {
@@ -184,55 +187,69 @@ class Comment extends React.Component {
                         <Icon name='message-square-outline' height={30} width={30} fill="#000000" />
                     </TouchableOpacity>
                 </View>
-                {this.state.comments_list.length == 0 ? (
-                    // no comments show empty state
-                    <Text>No Comments found ...</Text>
-                ) : (
-                        // are comments
-                        <FlatList
-                            refreshing={this.state.refresh}
-                            data={this.state.comments_list}
-                            keyExtractor={(item, index) => index.toString()}
-                            style={{ flex: 1, backgroundColor: '#eee' }}
-                            renderItem={({ item, index }) => (
-                                <View key={index} style={{ width: '100%', overflow: 'hidden', marginBottom: 5, justifyContent: 'space-between', borderBottomWidth: 1, borderColor: 'grey' }}>
-                                    <View style={{ padding: 5, width: '100%', flexDirection: 'row', justifyContent: 'space-between' }}>
-                                        <Text>{item.posted}</Text>
-                                        <TouchableOpacity onPress={() => navigation.navigate('User', { userId: item.authorId })}>
-                                            <Text>{item.author}</Text>
-                                        </TouchableOpacity>
-                                    </View>
-                                    <View style={{ padding: 5 }}>
-                                        <Text>{item.comment}</Text>
+                <KeyboardAvoidingView behavior='padding' enabled style={{ flex: 1 }}>
+                    <View style={{ flex: 1 }}>
+                        {this.state.comments_list.length == 0 ? (
+                            // no comments show empty state
+                            <View style={styles.nocommentfound}>
+                                <Text style={styles.nocommentfoundText}>No comments found 🙄</Text>
+                                <Text style={styles.nocommentfoundText}>Be the first to <Text style={{ fontWeight: 'bold' }}>Comment Below</Text> 😁</Text>
+                            </View>
+                        ) : (
+                                // are comments
+                                <FlatList
+                                    refreshing={this.state.refresh}
+                                    data={this.state.comments_list}
+                                    keyExtractor={(item, index) => index.toString()}
+                                    style={{ flex: 1, backgroundColor: '#fafafa' }}
+                                    renderItem={({ item, index }) => (
+                                        <View key={index} style={styles.commentList}>
+                                            <View style={styles.comment_IDContainer}>
+                                                <TouchableOpacity onPress={() => navigation.navigate('User', { userId: item.authorId })} style={styles.comment_ID}>
+                                                    <Text style={{ fontWeight: 'bold' }}>{item.author}</Text>
+                                                </TouchableOpacity>
+                                                <View style={{ justifyContent: 'center' }}>
+                                                    <Text style={{ fontSize: 10 }}>{item.posted}</Text>
+                                                </View>
+                                            </View>
+                                            <View style={{ padding: 5 }}>
+                                                <Text>{item.comment}</Text>
+                                            </View>
+                                        </View>
+                                    )}
+                                />
+                            )}
+                    </View>
+                    <View>
+                        {this.state.loggedin == true ? (
+                            //Is logged in
+                            <View style={styles.postingComment}>
+                                <Text style={{ fontWeight: 'bold' }}>Post Comment</Text>
+                                <View style={{ flexDirection: 'row' }}>
+                                    <TextInput
+                                        editable={true}
+                                        placeholder={'Enter your comment here ...'}
+                                        onChangeText={(text) => this.setState({ comment: text })}
+                                        maxLength={150}
+                                        value={this.state.comment}
+                                        style={styles.postingCommentInput}
+                                    />
+                                    <TouchableOpacity onPress={() => this.postComment()} style={styles.postingCommentButton}>
+                                        <Text style={{ color: 'white', textAlign: 'center' }}>Post</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        ) : (
+                                //Not logged in
+                                <View style={{ backgroundColor: '#fafafa' }}>
+                                    <View style={styles.notLoggedIn}>
+                                        <Text style={styles.notLoggedInText}>You are not logged in</Text>
+                                        <Text style={styles.notLoggedInText}>Please <Text style={{ fontWeight: 'bold' }}>login to post</Text> a comment</Text>
                                     </View>
                                 </View>
                             )}
-                        />
-                    )}
-                {this.state.loggedin == true ? (
-                    //Is logged in
-                    <KeyboardAvoidingView behavior='padding' enabled style={{ borderTopWidth: 1, borderTopColor: 'grey', padding: 10, marginBottom: 15 }}>
-                        <Text style={{ fontWeight: 'bold' }}>Post Comment</Text>
-                        <View>
-                            <TextInput
-                                editable={true}
-                                placeholder={'Enter your comment here ...'}
-                                onChangeText={(text) => this.setState({ comment: text })}
-                                value={this.state.comment}
-                                style={{ marginVertical: 10, height: 50, padding: 5, borderColor: 'grey', borderRadius: 3, backgroundColor: 'white', color: 'black' }}
-                            />
-                            <TouchableOpacity onPress={() => this.postComment()} style={{ paddingVertical: 10, paddingHorizontal: 20, backgroundColor: 'blue', borderRadius: 5 }}>
-                                <Text style={{ color: 'white' }}>Post</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </KeyboardAvoidingView>
-                ) : (
-                        //Not logged in
-                        <View>
-                            <Text>You are not logged in</Text>
-                            <Text>Please login to post a comment</Text>
-                        </View>
-                    )}
+                    </View>
+                </KeyboardAvoidingView>
             </View>
         );
     }
@@ -254,7 +271,7 @@ const styles = StyleSheet.create({
         height: 70,
         paddingTop: 30,
         backgroundColor: '#fff',
-        borderBottomColor: 'lightgrey',
+        borderBottomColor: 'grey',
         borderBottomWidth: 0.5,
         alignItems: 'center',
         flexDirection: 'row',
@@ -264,6 +281,89 @@ const styles = StyleSheet.create({
     titleText: {
         fontWeight: 'bold',
         fontSize: 20
+    },
+    nocommentfound: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingTop: 20
+    },
+    nocommentfoundText: {
+        fontWeight: '200'
+    },
+    commentList: {
+        width: '98%',
+        backgroundColor: '#eee',
+        alignSelf: 'center',
+        overflow: 'hidden',
+        marginVertical: 2.5,
+        justifyContent: 'space-between',
+        borderWidth: 1,
+        borderColor: 'lightgrey',
+        borderRadius: 5
+    },
+    comment_IDContainer: {
+        padding: 5,
+        width: '100%',
+        flexDirection: 'row',
+        justifyContent: 'space-between'
+    },
+    comment_ID: {
+        backgroundColor: '#fafafa',
+        borderColor: '#fafafa',
+        borderWidth: 0.5,
+        paddingHorizontal: 5,
+        paddingVertical: 3,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 5,
+        shadowRadius: 1,
+        shadowOpacity: 0.5,
+        shadowOffset: {
+            height: 0,
+            width: 0
+        },
+        elevation: 5
+    },
+    postingComment: {
+        borderTopWidth: 0.5,
+        borderTopColor: 'grey',
+        padding: 10
+    },
+    postingCommentInput: {
+        flex: 9,
+        marginVertical: 10,
+        height: 50,
+        padding: 5,
+        borderColor: 'grey',
+        borderWidth: 1,
+        borderRadius: 3,
+        backgroundColor: 'white',
+        color: 'black'
+    },
+    postingCommentButton: {
+        flex: 1,
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        backgroundColor: 'blue',
+        borderRadius: 5,
+        justifyContent: 'center',
+        alignSelf: 'center',
+        marginLeft: 5,
+        height: 50
+    },
+    notLoggedIn: {
+        alignItems: 'center',
+        padding: 10,
+        borderColor: 'grey',
+        borderWidth: 0.5,
+        borderRadius: 10,
+        width: '90%',
+        alignSelf: 'center',
+        backgroundColor: '#eee',
+        marginVertical: 5
+    },
+    notLoggedInText: {
+        fontWeight: '200'
     }
 });
 

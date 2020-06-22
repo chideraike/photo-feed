@@ -7,6 +7,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Icon } from 'react-native-eva-icons';
 
+import UserAuth from '../components/auth';
+
 class Upload extends React.Component {
     constructor(props) {
         super(props);
@@ -233,10 +235,7 @@ class Upload extends React.Component {
                     </View>
                 ) : (
                         //Not logged in
-                        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                            <Text>You are not logged in</Text>
-                            <Text>Please login to upload a photo</Text>
-                        </View>
+                        <UserAuth message={'Please login to upload a photo'} />
                     )}
             </View>
         );

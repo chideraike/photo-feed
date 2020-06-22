@@ -6,7 +6,9 @@ Built by **Chidera Ike** - 10640061
 
 ## Installation
 This app was built using Expo. In other to run it install Expo Client App from either the App Store or Play Store.\
-To run the app locally;
+Run the app [here](https://exp.host/@chideraike/instagram-app-clone) directly from the expo app\
+or\
+Run the app locally;
 * Download or clone this repo
 * Run `npm install` or `yarn add` in the project folder directory on the command line
 * After all node modules are done downloading you can run the app using the Expo Client App by using `npm start` or `yarn start` on the command line

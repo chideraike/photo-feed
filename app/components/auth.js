@@ -214,6 +214,7 @@ class UserAuthScreen extends React.Component {
                                         <TextInput
                                             editable={true}
                                             keyboardType={'email-address'}
+                                            autoCapitalize={"none"}
                                             placeholder={'Enter your email address'}
                                             onChangeText={(text) => this.setState({ email: text })}
                                             value={this.state.email}
@@ -296,6 +297,7 @@ class UserAuthScreen extends React.Component {
                                                     <TextInput
                                                         editable={true}
                                                         keyboardType={'email-address'}
+                                                        autoCapitalize={'none'}
                                                         placeholder={'Enter your email address'}
                                                         onChangeText={(text) => this.setState({ email: text })}
                                                         value={this.state.email}

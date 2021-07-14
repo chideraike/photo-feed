@@ -27,7 +27,7 @@ class UserAuthScreen extends React.Component {
         const { status } = await Permissions.askAsync(Permissions.CAMERA);
         this.setState({ camera: status });
 
-        const { statusRoll } = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+        const { statusRoll } = await Permissions.askAsync(Permissions.MEDIA_LIBRARY);
         this.setState({ cameraRoll: statusRoll });
     }
 
@@ -196,146 +196,146 @@ class UserAuthScreen extends React.Component {
                         </TouchableOpacity>
                     </View>
                 ) : (
-                        <View style={{ marginVertical: 20 }}>
-                            {this.state.authStep == 1 ? (
-                                // Login
-                                <View>
-                                    <View style={styles.loginTitle}>
-                                        <TouchableOpacity onPress={() => this.setState({ authStep: 0 })}>
-                                            <Icon name='arrow-back-outline' height={30} width={30} fill="#808080" />
-                                        </TouchableOpacity>
-                                        <Text style={{ fontWeight: 'bold', fontSize: 20 }}>Login</Text>
-                                        <TouchableOpacity onPress={() => this.login()}>
-                                            <Icon name='log-in-outline' height={30} width={30} fill="#008000" />
-                                        </TouchableOpacity>
-                                    </View>
-                                    <View>
-                                        <Text>Email Address:</Text>
-                                        <TextInput
-                                            editable={true}
-                                            keyboardType={'email-address'}
-                                            autoCapitalize={"none"}
-                                            placeholder={'Enter your email address'}
-                                            onChangeText={(text) => this.setState({ email: text })}
-                                            value={this.state.email}
-                                            style={styles.loginInput}
-                                        />
-                                    </View>
-                                    <View>
-                                        <Text>Password:</Text>
-                                        <TextInput
-                                            editable={true}
-                                            secureTextEntry={true}
-                                            placeholder={'Enter your password'}
-                                            onChangeText={(text) => this.setState({ pass: text })}
-                                            value={this.state.pass}
-                                            style={styles.loginInput}
-                                        />
-                                    </View>
-                                    <TouchableOpacity onPress={() => this.login()} style={styles.loginButton}>
-                                        <Text style={{ color: 'white', fontWeight: 'bold' }}>Login</Text>
+                    <View style={{ marginVertical: 20 }}>
+                        {this.state.authStep == 1 ? (
+                            // Login
+                            <View>
+                                <View style={styles.loginTitle}>
+                                    <TouchableOpacity onPress={() => this.setState({ authStep: 0 })}>
+                                        <Icon name='arrow-back-outline' height={30} width={30} fill="#808080" />
+                                    </TouchableOpacity>
+                                    <Text style={{ fontWeight: 'bold', fontSize: 20 }}>Login</Text>
+                                    <TouchableOpacity onPress={() => this.login()}>
+                                        <Icon name='log-in-outline' height={30} width={30} fill="#008000" />
                                     </TouchableOpacity>
                                 </View>
-                            ) : (
-                                    // Sign Up
+                                <View>
+                                    <Text>Email Address:</Text>
+                                    <TextInput
+                                        editable={true}
+                                        keyboardType={'email-address'}
+                                        autoCapitalize={"none"}
+                                        placeholder={'Enter your email address'}
+                                        onChangeText={(text) => this.setState({ email: text })}
+                                        value={this.state.email}
+                                        style={styles.loginInput}
+                                    />
+                                </View>
+                                <View>
+                                    <Text>Password:</Text>
+                                    <TextInput
+                                        editable={true}
+                                        secureTextEntry={true}
+                                        placeholder={'Enter your password'}
+                                        onChangeText={(text) => this.setState({ pass: text })}
+                                        value={this.state.pass}
+                                        style={styles.loginInput}
+                                    />
+                                </View>
+                                <TouchableOpacity onPress={() => this.login()} style={styles.loginButton}>
+                                    <Text style={{ color: 'white', fontWeight: 'bold' }}>Login</Text>
+                                </TouchableOpacity>
+                            </View>
+                        ) : (
+                            // Sign Up
+                            <View>
+                                <View style={styles.signupTitle}>
+                                    <TouchableOpacity onPress={() => this.setState({ authStep: 0 })}>
+                                        <Icon name='arrow-back-outline' height={30} width={30} fill="#808080" />
+                                    </TouchableOpacity>
+                                    <Text style={{ fontWeight: 'bold', fontSize: 20 }}>Sign Up</Text>
+                                    <TouchableOpacity onPress={() => this.signup()}>
+                                        <Icon name='checkmark-circle-outline' height={30} width={30} fill="#0000FF" />
+                                    </TouchableOpacity>
+                                </View>
+                                <KeyboardAwareScrollView>
                                     <View>
-                                        <View style={styles.signupTitle}>
-                                            <TouchableOpacity onPress={() => this.setState({ authStep: 0 })}>
-                                                <Icon name='arrow-back-outline' height={30} width={30} fill="#808080" />
-                                            </TouchableOpacity>
-                                            <Text style={{ fontWeight: 'bold', fontSize: 20 }}>Sign Up</Text>
-                                            <TouchableOpacity onPress={() => this.signup()}>
-                                                <Icon name='checkmark-circle-outline' height={30} width={30} fill="#0000FF" />
-                                            </TouchableOpacity>
-                                        </View>
-                                        <KeyboardAwareScrollView>
-                                            <View>
-                                                {this.state.avatarSelected == true ? (
-                                                    <View style={{ width: 300, flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', marginVertical: 10 }}>
-                                                        <View style={{ height: 75, width: 75, justifyContent: 'center', alignItems: 'center' }}>
-                                                            <Image source={{ uri: this.state.uri }} style={styles.uploadingImage} />
-                                                        </View>
-                                                        <Text>Profile picture selected</Text>
-                                                        <TouchableOpacity onPress={() => this.setState({ avatarSelected: false })}>
-                                                            <Icon name='close-outline' height={30} width={30} fill="#000000" />
-                                                        </TouchableOpacity>
-                                                    </View>
-                                                ) : (
-                                                        <View style={{ flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', marginVertical: 10 }}>
-                                                            <TouchableOpacity onPress={() => this.findNewAvatar()} style={{ height: 75, width: 75, backgroundColor: 'lightgrey', borderRadius: 75, justifyContent: 'center', alignItems: 'center' }}>
-                                                                <Icon name='person-outline' height={30} width={30} fill="#FFF" />
-                                                            </TouchableOpacity>
-                                                            <Text>Select a profile pic</Text>
-                                                        </View>
-                                                    )}
+                                        {this.state.avatarSelected == true ? (
+                                            <View style={{ width: 300, flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', marginVertical: 10 }}>
+                                                <View style={{ height: 75, width: 75, justifyContent: 'center', alignItems: 'center' }}>
+                                                    <Image source={{ uri: this.state.uri }} style={styles.uploadingImage} />
+                                                </View>
+                                                <Text>Profile picture selected</Text>
+                                                <TouchableOpacity onPress={() => this.setState({ avatarSelected: false })}>
+                                                    <Icon name='close-outline' height={30} width={30} fill="#000000" />
+                                                </TouchableOpacity>
                                             </View>
-                                            <View style={{ alignSelf: 'center' }}>
-                                                <View>
-                                                    <Text>Name:</Text>
-                                                    <TextInput
-                                                        editable={true}
-                                                        keyboardType={'default'}
-                                                        placeholder={'Enter your name'}
-                                                        onChangeText={(text) => this.setState({ name: text })}
-                                                        value={this.state.name}
-                                                        style={styles.signupInput}
-                                                    />
-                                                </View>
-                                                <View>
-                                                    <Text>Username:</Text>
-                                                    <TextInput
-                                                        editable={true}
-                                                        keyboardType={'default'}
-                                                        placeholder={'Enter your username'}
-                                                        onChangeText={(text) => this.setState({ username: text })}
-                                                        value={this.state.username}
-                                                        style={styles.signupInput}
-                                                    />
-                                                </View>
-                                                <View>
-                                                    <Text>Email Address:</Text>
-                                                    <TextInput
-                                                        editable={true}
-                                                        keyboardType={'email-address'}
-                                                        autoCapitalize={'none'}
-                                                        placeholder={'Enter your email address'}
-                                                        onChangeText={(text) => this.setState({ email: text })}
-                                                        value={this.state.email}
-                                                        style={styles.signupInput}
-                                                    />
-                                                </View>
-                                                <View>
-                                                    <Text>Password:</Text>
-                                                    <TextInput
-                                                        editable={true}
-                                                        secureTextEntry={true}
-                                                        placeholder={'Enter your password'}
-                                                        onChangeText={(text) => this.setState({ pass: text })}
-                                                        value={this.state.pass}
-                                                        style={styles.signupInput}
-                                                    />
-                                                </View>
+                                        ) : (
+                                            <View style={{ flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', marginVertical: 10 }}>
+                                                <TouchableOpacity onPress={() => this.findNewAvatar()} style={{ height: 75, width: 75, backgroundColor: 'lightgrey', borderRadius: 75, justifyContent: 'center', alignItems: 'center' }}>
+                                                    <Icon name='person-outline' height={30} width={30} fill="#FFF" />
+                                                </TouchableOpacity>
+                                                <Text>Select a profile pic</Text>
                                             </View>
-                                            <TouchableOpacity onPress={() => this.signup()} style={styles.signupButton}>
-                                                <Text style={{ color: 'white', fontWeight: 'bold' }}>Sign Up</Text>
-                                            </TouchableOpacity>
-                                            {this.state.uploading == true ? (
-                                                <View style={{ marginTop: 10, flexDirection: 'row', alignSelf: 'center' }}>
-                                                    <Text>{this.state.progress}%  </Text>
-                                                    {this.state.progress != 100 ? (
-                                                        <ActivityIndicator size='small' color='blue' />
-                                                    ) : (
-                                                            <Text>Processing</Text>
-                                                        )}
-                                                </View>
-                                            ) : (
-                                                    <View></View>
-                                                )}
-                                        </KeyboardAwareScrollView>
+                                        )}
                                     </View>
-                                )}
-                        </View>
-                    )}
+                                    <View style={{ alignSelf: 'center' }}>
+                                        <View>
+                                            <Text>Name:</Text>
+                                            <TextInput
+                                                editable={true}
+                                                keyboardType={'default'}
+                                                placeholder={'Enter your name'}
+                                                onChangeText={(text) => this.setState({ name: text })}
+                                                value={this.state.name}
+                                                style={styles.signupInput}
+                                            />
+                                        </View>
+                                        <View>
+                                            <Text>Username:</Text>
+                                            <TextInput
+                                                editable={true}
+                                                keyboardType={'default'}
+                                                placeholder={'Enter your username'}
+                                                onChangeText={(text) => this.setState({ username: text })}
+                                                value={this.state.username}
+                                                style={styles.signupInput}
+                                            />
+                                        </View>
+                                        <View>
+                                            <Text>Email Address:</Text>
+                                            <TextInput
+                                                editable={true}
+                                                keyboardType={'email-address'}
+                                                autoCapitalize={'none'}
+                                                placeholder={'Enter your email address'}
+                                                onChangeText={(text) => this.setState({ email: text })}
+                                                value={this.state.email}
+                                                style={styles.signupInput}
+                                            />
+                                        </View>
+                                        <View>
+                                            <Text>Password:</Text>
+                                            <TextInput
+                                                editable={true}
+                                                secureTextEntry={true}
+                                                placeholder={'Enter your password'}
+                                                onChangeText={(text) => this.setState({ pass: text })}
+                                                value={this.state.pass}
+                                                style={styles.signupInput}
+                                            />
+                                        </View>
+                                    </View>
+                                    <TouchableOpacity onPress={() => this.signup()} style={styles.signupButton}>
+                                        <Text style={{ color: 'white', fontWeight: 'bold' }}>Sign Up</Text>
+                                    </TouchableOpacity>
+                                    {this.state.uploading == true ? (
+                                        <View style={{ marginTop: 10, flexDirection: 'row', alignSelf: 'center' }}>
+                                            <Text>{this.state.progress}%  </Text>
+                                            {this.state.progress != 100 ? (
+                                                <ActivityIndicator size='small' color='blue' />
+                                            ) : (
+                                                <Text>Processing</Text>
+                                            )}
+                                        </View>
+                                    ) : (
+                                        <View></View>
+                                    )}
+                                </KeyboardAwareScrollView>
+                            </View>
+                        )}
+                    </View>
+                )}
             </View>
         );
     }

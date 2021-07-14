@@ -182,7 +182,7 @@ class Comment extends React.Component {
             <View style={styles.container}>
                 <View style={styles.title}>
                     <TouchableOpacity onPress={() => navigation.goBack()}>
-                        <Icon name='chevron-up-outline' height={30} width={30} fill="#000000" />
+                        <Icon name='chevron-down-outline' height={30} width={30} fill="#000000" />
                     </TouchableOpacity>
                     <View>
                         <Text style={styles.titleText}>Comments</Text>
